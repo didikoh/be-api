@@ -10,7 +10,9 @@ $price_m    = $_POST['price_m'] ?? 0;
 $difficulty = $_POST['difficulty'] ?? 0;
 $min_book   = $_POST['min_book'] ?? 0;
 $coach      = $_POST['coach'] ?? '';
-$time       = $_POST['start_time'] ?? ''; // 应该是 datetime-local 格式：2025-05-06T18:30
+$time       = $_POST['start_time'] ?? '';
+$duration   = $_POST['duration'] ?? 0;
+$location   = $_POST['location'] ?? null;
 $delete = $_POST['delete'] ?? "false";
 
 // 转换为标准 DATETIME 格式（MySQL）
@@ -35,8 +37,8 @@ try {
     if ($id === null || $id === '' || $id === 'null') {
         // INSERT 新课程
         $stmt = $pdo->prepare("
-            INSERT INTO course_list (name, price, price_m, difficulty, min_book, coach, start_time)
-            VALUES (:name, :price, :price_m, :difficulty, :min_book, :coach, :start_time)
+            INSERT INTO course_list (name, price, price_m, difficulty, min_book, coach, start_time, duration, location)
+            VALUES (:name, :price, :price_m, :difficulty, :min_book, :coach, :start_time, :duration, :location)
         ");
     } else {
         // UPDATE 已有课程
@@ -48,7 +50,9 @@ try {
                 difficulty = :difficulty,
                 min_book = :min_book,
                 coach = :coach,
-                start_time = :start_time
+                start_time = :start_time,
+                duration = :duration,
+                location = :location
             WHERE id = :id
         ");
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
@@ -62,6 +66,8 @@ try {
     $stmt->bindParam(':min_book', $min_book);
     $stmt->bindParam(':coach', $coach);
     $stmt->bindParam(':start_time', $start_time);
+    $stmt->bindParam(':duration', $duration, PDO::PARAM_INT);
+    $stmt->bindParam(':location', $location);
 
     $stmt->execute();
 

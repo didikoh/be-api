@@ -3,7 +3,7 @@ ini_set('session.gc_maxlifetime', 2592000);      // 后端保存 30 天
 ini_set('session.cookie_lifetime', 2592000);     // 客户端 cookie 保存 30 天
 session_start(); // ✅ 开启 Session
 header('Content-Type: application/json');
-require_once 'connect.php'; // 包含 PDO 和 CORS 设置
+require_once './connect.php'; // 包含 PDO 和 CORS 设置
 
 // 接收 POST 数据
 $name = $_POST['name'] ?? '';
@@ -27,6 +27,17 @@ if (isset($_FILES['profile_pic']) && $_FILES['profile_pic']['error'] === UPLOAD_
     if (move_uploaded_file($_FILES['profile_pic']['tmp_name'], $targetPath)) {
         $profilePicPath = $targetPath;
     }
+}
+
+// ========== 检查手机号是否已注册 ==========
+$stmtCheck = $pdo->prepare("SELECT 1 FROM user_list WHERE phone = :phone LIMIT 1");
+$stmtCheck->execute([':phone' => $phone]);
+if ($stmtCheck->fetch()) {
+    echo json_encode([
+        "success" => false,
+        "message" => "该手机号已被注册，请使用其他号码"
+    ]);
+    exit;
 }
 
 try {

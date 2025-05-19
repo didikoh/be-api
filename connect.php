@@ -1,7 +1,7 @@
 <?php
 // ========== 解决 CORS 问题 ==========
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-$allowed_origins = ['http://localhost:5173', 'https://yourdomain.com']; // 可根据需要添加正式站地址
+$allowed_origins = ['http://localhost:5173', 'https://bestudiobp.com']; // 可根据需要添加正式站地址
 
 if (in_array($origin, $allowed_origins)) {
     header("Access-Control-Allow-Origin: $origin");
@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // ========== 数据库连接 ==========
 if (!isset($pdo)) {
-    $host = '151.106.124.1';
+    $host = 'bestudiobp.com';
     $db   = 'u839013241_bestudio';
     $user = 'u839013241_beadmin';
     $pass = 'HxDb!20BeS@Xh785!';

@@ -1,12 +1,12 @@
 <?php
 header('Content-Type: application/json');
-require_once 'connect.php';
+require_once './connect.php';
 
 $input = json_decode(file_get_contents("php://input"), true);
-// 获取前端传入的 phone（通过 POST 或 GET 均可）
 $phone = $input['phone'] ?? null;
 $student_id = null;
 
+// 只在有 phone 时查询 student_id，没 phone 就不查
 if ($phone) {
     $stmtUser = $pdo->prepare("SELECT id FROM student_list WHERE phone = :phone LIMIT 1");
     $stmtUser->execute([':phone' => $phone]);
@@ -14,21 +14,15 @@ if ($phone) {
     if ($student) {
         $student_id = $student['id'];
     }
-}else{
-    echo json_encode([
-        'success' => false,
-        'message' => '用户未登录'
-    ]);
-    exit;
 }
 
 try {
-    // 查询课程及预约总人数 + 当前用户是否已预约
+    // 根据是否有 student_id 动态拼接 SQL
     $sql = "
         SELECT 
             c.*,
-            IFNULL(SUM(b.head_count), 0) AS booking_count" .
-            ($student_id ? ",
+            IFNULL(SUM(b.head_count), 0) AS booking_count
+            " . ($student_id ? ",
             MAX(CASE WHEN b.student_id = :student_id THEN 1 ELSE 0 END) AS is_booked" : "") . "
         FROM 
             course_list c
@@ -53,13 +47,15 @@ try {
 
     foreach ($courses as &$course) {
         $course['booking_count'] = (int) $course['booking_count'];
-        $course['is_booked'] = isset($course['is_booked']) ? $course['is_booked'] == 1 : false;
+        if ($student_id) {
+            $course['is_booked'] = isset($course['is_booked']) ? $course['is_booked'] == 1 : false;
+        }
     }
 
     echo json_encode([
         'success' => true,
         'courses' => $courses,
-        'student_id' => $phone
+        'student_id' => $student_id, // 传回 id，更有用
     ]);
 } catch (Exception $e) {
     echo json_encode([

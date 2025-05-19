@@ -3,7 +3,7 @@ ini_set('session.gc_maxlifetime', 2592000);      // 后端保存 30 天
 ini_set('session.cookie_lifetime', 2592000);     // 客户端 cookie 保存 30 天
 session_start();
 header('Content-Type: application/json');
-require_once 'connect.php';
+require_once './connect.php';
 
 if (!isset($_SESSION['user'])) {
     echo json_encode([

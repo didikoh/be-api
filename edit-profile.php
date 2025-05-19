@@ -3,10 +3,11 @@ ini_set('session.gc_maxlifetime', 2592000);      // 后端保存 30 天
 ini_set('session.cookie_lifetime', 2592000);     // 客户端 cookie 保存 30 天
 session_start();
 header('Content-Type: application/json');
-require_once 'connect.php';
+require_once './connect.php';
 
 $action = $_POST['action'] ?? '';
 $phone = $_POST['phone'] ?? '';
+$role = $_POST['role'] ?? 'student'; // 默认是 student
 
 if ($action === 'edit') {
     $name = $_POST['name'] ?? '';
@@ -41,15 +42,19 @@ if ($action === 'edit') {
             }
         }
 
-        $stmt = $pdo->prepare("UPDATE student_list SET $updateFields WHERE phone = :phone");
+        // 根据角色更新不同的表
+        if ($role === 'coach') {
+            $stmt = $pdo->prepare("UPDATE coach_list SET $updateFields WHERE phone = :phone");
+        } else {
+            $stmt = $pdo->prepare("UPDATE student_list SET $updateFields WHERE phone = :phone");
+        }
+
         $stmt->execute($params);
 
         echo json_encode(["success" => true, "message" => "资料更新成功"]);
-
     } catch (PDOException $e) {
         echo json_encode(["success" => false, "message" => "更新失败: " . $e->getMessage()]);
     }
-
 } elseif ($action === 'change_password') {
     $passwordOld = $_POST['password_old'] ?? '';
     $passwordNew = $_POST['password_new'] ?? '';
@@ -76,11 +81,28 @@ if ($action === 'edit') {
         $stmt->execute([':password' => $hashedNew, ':phone' => $phone]);
 
         echo json_encode(["success" => true, "message" => "密码已更新"]);
-
     } catch (PDOException $e) {
         echo json_encode(["success" => false, "message" => "密码更新失败: " . $e->getMessage()]);
     }
+} elseif ($action === 'admin_change_password') {
+    $passwordNew = $_POST['password_new'] ?? '';
+    $phone = $_POST['phone'] ?? '';
+    $role = $_POST['role'] ?? '';
 
+    if (!$passwordNew || !$phone || !$role) {
+        echo json_encode(["success" => false, "message" => "缺少参数"]);
+        exit;
+    }
+
+    try {
+        $hashedNew = password_hash($passwordNew, PASSWORD_DEFAULT);
+        $stmt = $pdo->prepare("UPDATE user_list SET password = :password WHERE phone = :phone");
+        $stmt->execute([':password' => $hashedNew, ':phone' => $phone]);
+
+        echo json_encode(["success" => true, "message" => "密码更新成功"]);
+    } catch (PDOException $e) {
+        echo json_encode(["success" => false, "message" => "密码更新失败: " . $e->getMessage()]);
+    }
 } else {
-    echo json_encode(["success" => false, "message" => "未知操作"]);
+    echo json_encode(["success" => false, "message" => "未知的操作"]);
 }

@@ -2,8 +2,7 @@
 ini_set('session.gc_maxlifetime', 2592000);      // 后端保存 30 天
 ini_set('session.cookie_lifetime', 2592000);     // 客户端 cookie 保存 30 天
 session_start(); // ✅ 启用 Session
-header('Content-Type: application/json');
-require_once 'connect.php'; // 包含 PDO 和 CORS 支持
+require_once './connect.php'; // 包含 PDO 和 CORS 支持
 
 // 获取输入数据
 $phone = $_POST['phone'] ?? '';

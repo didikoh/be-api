@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json');
-require_once 'connect.php';
+require_once '../connect.php';
 
 try {
     // 查询课程和对应预约人数
@@ -11,9 +11,7 @@ try {
         FROM 
             course_list c
         LEFT JOIN 
-            course_booking b ON c.id = b.course_id AND b.status = 'booked'
-        WHERE 
-            c.state = 0
+            course_booking b ON c.id = b.course_id AND b.status != 'cancelled'
         GROUP BY 
             c.id
         ORDER BY 

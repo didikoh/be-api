@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json');
-require_once 'connect.php';
+require_once './connect.php';
 
 $input = json_decode(file_get_contents("php://input"), true);
 $phone = $input['phone'] ?? null;
@@ -16,7 +16,7 @@ if ($phone) {
 }
 
 try {
-    // 1. 获取我的预约
+    // 1. 获取我的预约（完整课程信息 + 预约人数）
     $my_bookings = [];
     if ($student_id) {
         $stmtBooking = $pdo->prepare("
@@ -24,6 +24,12 @@ try {
                 c.id AS course_id,
                 c.name,
                 c.start_time,
+                c.difficulty,
+                c.coach,
+                c.location,
+                c.duration,
+                c.price,
+                c.price_m,
                 b.head_count
             FROM 
                 course_booking b
@@ -40,7 +46,7 @@ try {
         $my_bookings = $stmtBooking->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // 2. 获取接下来 24 小时内的推荐课程（含预约人数）
+    // 2. 获取推荐课程（24 小时内 + 预约人数）
     $stmtRecommended = $pdo->query("
         SELECT 
             c.*,
@@ -52,7 +58,7 @@ try {
         WHERE 
             c.state = 0
             AND c.start_time >= NOW()
-            AND c.start_time <= DATE_ADD(NOW(), INTERVAL 24 HOUR)
+            AND c.start_time <= DATE_ADD(NOW(), INTERVAL 72 HOUR)
         GROUP BY 
             c.id
         ORDER BY 

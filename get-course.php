@@ -3,18 +3,7 @@ header('Content-Type: application/json');
 require_once './connect.php';
 
 $input = json_decode(file_get_contents("php://input"), true);
-$phone = $input['phone'] ?? null;
-$student_id = null;
-
-// 只在有 phone 时查询 student_id，没 phone 就不查
-if ($phone) {
-    $stmtUser = $pdo->prepare("SELECT id FROM student_list WHERE phone = :phone LIMIT 1");
-    $stmtUser->execute([':phone' => $phone]);
-    $student = $stmtUser->fetch();
-    if ($student) {
-        $student_id = $student['id'];
-    }
-}
+$student_id = $input['id'] ?? null;
 
 try {
     // 根据是否有 student_id 动态拼接 SQL

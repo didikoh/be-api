@@ -10,6 +10,7 @@ if (in_array($origin, $allowed_origins)) {
 
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
+header('Content-Type: application/json');
 
 // 预检请求直接返回
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {

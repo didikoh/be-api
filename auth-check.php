@@ -13,23 +13,23 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$phone = $_SESSION['user']['phone'];
+$user_id = $_SESSION['user']['user_id'];
 $role = $_SESSION['user']['role'];
 
 try {
     $profileData = [];
 
     if ($role === 'student') {
-        $stmt = $pdo->prepare("SELECT * FROM student_list WHERE phone = :phone LIMIT 1");
-        $stmt->execute([':phone' => $phone]);
+        $stmt = $pdo->prepare("SELECT * FROM student_list WHERE user_id = :user_id LIMIT 1");
+        $stmt->execute([':user_id' => $user_id]);
         $profileData = $stmt->fetch() ?: [];
     } elseif ($role === 'coach') {
-        $stmt = $pdo->prepare("SELECT * FROM coach_list WHERE phone = :phone LIMIT 1");
-        $stmt->execute([':phone' => $phone]);
+        $stmt = $pdo->prepare("SELECT * FROM coach_list WHERE user_id = :user_id LIMIT 1");
+        $stmt->execute([':user_id' => $user_id]);
         $profileData = $stmt->fetch() ?: [];
     } elseif ($role === 'admin') {
-        $stmt = $pdo->prepare("SELECT * FROM admin_list WHERE phone = :phone LIMIT 1");
-        $stmt->execute([':phone' => $phone]);
+        $stmt = $pdo->prepare("SELECT * FROM admin_list WHERE user_id = :user_id LIMIT 1");
+        $stmt->execute([':user_id' => $user_id]);
         $profileData = $stmt->fetch() ?: [];
     }
 
@@ -38,7 +38,6 @@ try {
         "message" => "获取用户资料成功",
         "profile" => array_merge($profileData, [
             "role" => $role,
-            "phone" => $phone,
         ]),
     ]);
 } catch (PDOException $e) {

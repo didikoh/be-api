@@ -2,14 +2,14 @@
 ini_set('session.gc_maxlifetime', 2592000);      // 后端保存 30 天
 ini_set('session.cookie_lifetime', 2592000);     // 客户端 cookie 保存 30 天
 session_start(); // ✅ 开启 Session
-header('Content-Type: application/json');
 require_once './connect.php'; // 包含 PDO 和 CORS 设置
 
-// 接收 POST 数据
-$name = $_POST['name'] ?? '';
-$phone = $_POST['phone'] ?? '';
-$birthday = $_POST['birthday'] ?? '';
-$password = $_POST['password'] ?? '';
+// 接收 JSON 数据
+$input = json_decode(file_get_contents('php://input'), true);
+$name = $input['name'] ?? '';
+$phone = $input['phone'] ?? '';
+$birthday = $input['birthday'] ?? '';
+$password = $input['password'] ?? '';
 $role = "student";
 $profilePicPath = null;
 
@@ -30,12 +30,12 @@ if (isset($_FILES['profile_pic']) && $_FILES['profile_pic']['error'] === UPLOAD_
 }
 
 // ========== 检查手机号是否已注册 ==========
-$stmtCheck = $pdo->prepare("SELECT 1 FROM user_list WHERE phone = :phone LIMIT 1");
+$stmtCheck = $pdo->prepare("SELECT 1 FROM user_list WHERE phone = :phone AND state != -1 LIMIT 1");
 $stmtCheck->execute([':phone' => $phone]);
 if ($stmtCheck->fetch()) {
     echo json_encode([
         "success" => false,
-        "message" => "该手机号已被注册，请使用其他号码"
+        "message" => "Phone number already registered"
     ]);
     exit;
 }
@@ -52,10 +52,12 @@ try {
         ':role'     => $role
     ]);
 
+    $user_id = $pdo->lastInsertId();
     // 2️⃣ 插入 members 表
-    $stmt2 = $pdo->prepare("INSERT INTO student_list (phone, name, birthday, profile_pic) 
-                            VALUES (:phone, :name, :birthday, :profile_pic)");
+    $stmt2 = $pdo->prepare("INSERT INTO student_list (user_id,phone, name, birthday, profile_pic) 
+                            VALUES (:user_id,:phone, :name, :birthday, :profile_pic)");
     $stmt2->execute([
+        ':user_id'     => $user_id,
         ':phone'       => $phone,
         ':name'        => $name,
         ':birthday'    => $birthday,
@@ -65,28 +67,28 @@ try {
     // 提交事务
     $pdo->commit();
 
+
     // 3️⃣ 查询 student_list 获取完整资料
-    $stmt3 = $pdo->prepare("SELECT * FROM student_list WHERE phone = :phone LIMIT 1");
-    $stmt3->execute([':phone' => $phone]);
+    $stmt3 = $pdo->prepare("SELECT * FROM student_list WHERE user_id = :user_id LIMIT 1");
+    $stmt3->execute([':user_id' => $user_id]);
     $profileData = $stmt3->fetch() ?: [];
 
     // ✅ 写入 Session（等同登录成功）
     $_SESSION['user'] = [
-        "phone" => $phone,
+        "user_id" => $user_id,
         "role" => $role,
         "login_time" => time()
     ];
 
     echo json_encode([
         "success" => true,
-        "message" => "注册成功，已自动登录",
+        "message" => "Registration successful",
         "profile" => array_merge($profileData, [
             "role" => $role,
-            "phone" => $phone,
         ]),
     ]);
 } catch (PDOException $e) {
     // 回滚事务
     $pdo->rollBack();
-    echo json_encode(["success" => false, "message" => "注册失败: " . $e->getMessage()]);
+    echo json_encode(["success" => false, "message" => "Register failed: " . $e->getMessage()]);
 }

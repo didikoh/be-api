@@ -3,17 +3,7 @@ header('Content-Type: application/json');
 require_once './connect.php';
 
 $input = json_decode(file_get_contents("php://input"), true);
-$phone = $input['phone'] ?? null;
-$student_id = null;
-
-if ($phone) {
-    $stmt = $pdo->prepare("SELECT id FROM student_list WHERE phone = :phone LIMIT 1");
-    $stmt->execute([':phone' => $phone]);
-    $student = $stmt->fetch();
-    if ($student) {
-        $student_id = $student['id'];
-    }
-}
+$student_id = $input['id'] ?? null;
 
 try {
     // 1. 获取我的预约（完整课程信息 + 预约人数）

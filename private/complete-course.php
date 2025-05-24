@@ -15,10 +15,10 @@ try {
     //    如果你要的是status=Completed，请见下方备注
     $updateBooking = $pdo->prepare(
         "UPDATE course_booking 
-         SET status = 'attended'
+         SET status = 'completed'
          WHERE course_id IN (
             SELECT id FROM course_list WHERE start_time < :now
-         ) AND (status = 'booked' OR status = 'paid')"
+         ) AND (status = 'booked' OR status = 'paid' OR status = '')"
     );
     $updateBooking->execute([':now' => $now]);
 

@@ -12,7 +12,7 @@ $frozen_price = $input['frozen_price'] ?? null;
 if (!$student_id || !$course_id || $frozen_price === null) {
     echo json_encode([
         "success" => false,
-        "message" => "student_id, course_id, frozen_price 必填"
+        "message" => "student_id, course_id, and frozen_price are required"
     ]);
     exit;
 }
@@ -20,13 +20,13 @@ if (!$student_id || !$course_id || $frozen_price === null) {
 if ($frozen_price <= 0) {
     echo json_encode([
         "success" => false,
-        "message" => "冻结金额无效"
+        "message" => "Invalid frozen amount"
     ]);
     exit;
 }
 
 // 检查是否已预约
-$stmtCheck = $pdo->prepare("SELECT id FROM course_booking WHERE student_id = :student_id AND course_id = :course_id AND status = 'booked'");
+$stmtCheck = $pdo->prepare("SELECT id FROM course_booking WHERE student_id = :student_id AND course_id = :course_id AND status != 'cancelled'");
 $stmtCheck->execute([
     ':student_id' => $student_id,
     ':course_id' => $course_id
@@ -34,7 +34,7 @@ $stmtCheck->execute([
 if ($stmtCheck->rowCount() > 0) {
     echo json_encode([
         "success" => false,
-        "message" => "你已预约了此课程"
+        "message" => "You have already booked this course"
     ]);
     exit;
 }
@@ -57,11 +57,12 @@ if ($success) {
 
     echo json_encode([
         "success" => true,
-        "message" => "预约成功"
+        "message" => "Booking successful"
     ]);
 } else {
     echo json_encode([
         "success" => false,
-        "message" => "预约失败，请稍后再试"
+        "message" => "Booking failed, please try again later"
     ]);
 }
+

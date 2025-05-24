@@ -43,9 +43,29 @@ try {
     $stmt->execute([':student_id' => $student_id]);
     $records = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    $sql = "
+SELECT 
+    SUM(cl.duration) AS total_minutes
+FROM
+    course_booking cb
+JOIN
+    course_list cl ON cb.course_id = cl.id
+WHERE
+    cb.student_id = :student_id
+    AND cb.status <> 'cancelled'
+    AND cl.start_time >= DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW()) - 2) DAY)
+    AND cl.start_time < DATE_ADD(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW()) - 2) DAY), INTERVAL 7 DAY)
+";
+    $stmt2 = $pdo->prepare($sql);
+    $stmt2->execute([':student_id' => $student_id]);
+    $result = $stmt2->fetch(PDO::FETCH_ASSOC);
+
+
+
     echo json_encode([
         'success' => true,
-        'bookings' => $records
+        'bookings' => $records,
+        'total_minutes' => (int)($result['total_minutes'] ?? 0)
     ]);
 } catch (Exception $e) {
     echo json_encode([

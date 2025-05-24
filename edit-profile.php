@@ -15,7 +15,7 @@ if ($action === 'edit') {
     $profilePicPath = null;
 
     if (!$name || !$birthday) {
-        echo json_encode(["success" => false, "message" => "名字和生日不能为空"]);
+        echo json_encode(["success" => false, "message" => "Name and birthday cannot be empty"]);
         exit;
     }
 
@@ -51,16 +51,16 @@ if ($action === 'edit') {
 
         $stmt->execute($params);
 
-        echo json_encode(["success" => true, "message" => "资料更新成功"]);
+        echo json_encode(["success" => true, "message" => "Profile updated successfully"]);
     } catch (PDOException $e) {
-        echo json_encode(["success" => false, "message" => "更新失败: " . $e->getMessage()]);
+        echo json_encode(["success" => false, "message" => "Update failed: " . $e->getMessage()]);
     }
 } elseif ($action === 'change_password') {
     $passwordOld = $_POST['password_old'] ?? '';
     $passwordNew = $_POST['password_new'] ?? '';
 
     if (!$passwordOld || !$passwordNew) {
-        echo json_encode(["success" => false, "message" => "请输入原密码和新密码"]);
+        echo json_encode(["success" => false, "message" => "Please enter the old and new passwords"]);
         exit;
     }
 
@@ -71,7 +71,7 @@ if ($action === 'edit') {
         $user = $stmt->fetch();
 
         if (!$user || !password_verify($passwordOld, $user['password'])) {
-            echo json_encode(["success" => false, "message" => "原密码错误"]);
+            echo json_encode(["success" => false, "message" => "Incorrect old password"]);
             exit;
         }
 
@@ -80,17 +80,15 @@ if ($action === 'edit') {
         $stmt = $pdo->prepare("UPDATE user_list SET password = :password WHERE phone = :phone");
         $stmt->execute([':password' => $hashedNew, ':phone' => $phone]);
 
-        echo json_encode(["success" => true, "message" => "密码已更新"]);
+        echo json_encode(["success" => true, "message" => "Password updated successfully"]);
     } catch (PDOException $e) {
-        echo json_encode(["success" => false, "message" => "密码更新失败: " . $e->getMessage()]);
+        echo json_encode(["success" => false, "message" => "Password update failed: " . $e->getMessage()]);
     }
 } elseif ($action === 'admin_change_password') {
     $passwordNew = $_POST['password_new'] ?? '';
-    $phone = $_POST['phone'] ?? '';
-    $role = $_POST['role'] ?? '';
 
     if (!$passwordNew || !$phone || !$role) {
-        echo json_encode(["success" => false, "message" => "缺少参数"]);
+        echo json_encode(["success" => false, "message" => "Missing parameters"]);
         exit;
     }
 
@@ -99,10 +97,11 @@ if ($action === 'edit') {
         $stmt = $pdo->prepare("UPDATE user_list SET password = :password WHERE phone = :phone");
         $stmt->execute([':password' => $hashedNew, ':phone' => $phone]);
 
-        echo json_encode(["success" => true, "message" => "密码更新成功"]);
+        echo json_encode(["success" => true, "message" => "Password updated successfully"]);
     } catch (PDOException $e) {
-        echo json_encode(["success" => false, "message" => "密码更新失败: " . $e->getMessage()]);
+        echo json_encode(["success" => false, "message" => "Password update failed: " . $e->getMessage()]);
     }
 } else {
-    echo json_encode(["success" => false, "message" => "未知的操作"]);
+    echo json_encode(["success" => false, "message" => "Unknown action"]);
 }
+

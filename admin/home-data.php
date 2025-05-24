@@ -25,7 +25,12 @@ try {
     $booking_count = (int)($stmt3->fetch()['total']);
 
     // 今日交易额
-    $stmt4 = $pdo->prepare("SELECT IFNULL(SUM(amount), 0) AS total FROM transaction_list WHERE type = 'pay' AND DATE(CONVERT_TZ(time, '+00:00', '+08:00')) = :today");
+    $stmt4 = $pdo->prepare("
+        SELECT IFNULL(SUM(amount), 0) AS total 
+        FROM transaction_list 
+        WHERE type = 'pay' 
+        AND DATE(time) = :today
+    ");
     $stmt4->execute([':today' => $today]);
     $total_amount = (int)($stmt4->fetch()['total']);
 

@@ -35,6 +35,7 @@ if (!isset($pdo)) {
 
     try {
         $pdo = new PDO($dsn, $user, $pass, $options);
+        $pdo->exec("SET time_zone = '+08:00'");
         // 可选：连接成功提示
         // echo "✅ 数据库连接成功！";
     } catch (PDOException $e) {

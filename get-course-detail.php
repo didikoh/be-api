@@ -10,21 +10,21 @@ $student_id = $input['student_id'] ?? null;
 if (!$course_id) {
     echo json_encode([
         'success' => false,
-        'message' => '缺少课程ID'
+        'message' => 'Missing course ID'
     ]);
     exit;
 }
 
 try {
     // 1. 获取课程资料
-    $stmtCourse = $pdo->prepare("SELECT * FROM course_list WHERE id = :course_id AND state = 0 LIMIT 1");
+    $stmtCourse = $pdo->prepare("SELECT * FROM course_list WHERE id = :course_id LIMIT 1");
     $stmtCourse->execute([':course_id' => $course_id]);
     $course = $stmtCourse->fetch(PDO::FETCH_ASSOC);
 
     if (!$course) {
         echo json_encode([
             'success' => false,
-            'message' => '找不到课程'
+            'message' => 'Course not found'
         ]);
         exit;
     }
@@ -36,7 +36,7 @@ try {
             FROM course_booking 
             WHERE course_id = :course_id 
               AND student_id = :student_id 
-              AND status = 'booked'
+              AND status != 'cancelled'
             LIMIT 1
         ");
         $stmtBooking->execute([
@@ -61,6 +61,7 @@ try {
 } catch (Exception $e) {
     echo json_encode([
         'success' => false,
-        'message' => '数据库错误: ' . $e->getMessage()
+        'message' => 'Database error: ' . $e->getMessage()
     ]);
 }
+
